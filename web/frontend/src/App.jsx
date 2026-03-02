@@ -1,33 +1,30 @@
-import { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom' // routes - wrapper who decide which Route (mapping url and componnet) to show
 import Header from './components/Header'
+import Nav from './components/Nav'
 import Home from './pages/Home'
 import AboutClinic from './pages/AboutClinic'
 import AboutRoni from './pages/AboutRoni'
-import Nav from './components/Nav'
+import Appointments  from './pages/Appointments'  
 import './App.css'
 
 // return what that appears on the screen
 function App() {
-
-  //React, sets the current value of page which setpage changes. starts as 'home'
-  const [page, setPage] = useState('home')
-
-  // what that will be displayed (UI) AND update automaticaly changes
   return (
-      <div>
-        <Header />
 
-      <Nav page = {page} navigator={setPage} />
+    <>
+      <Header />
+      <Nav /> {/* shows the nav on the screen with the url and active link styling */}
 
-      <main style={{ marginTop: '16px' }}> {/*what page to put with the value of page*/}
-        {page === 'home' && <Home />}
-        {page === 'clinic' && <AboutClinic />}
-        {page === 'roni' && <AboutRoni />}
+      <main style={{ marginTop: '16px' }}>
+        <Routes> {/* react chooses which Route to show by current url that the nav shows*/}
+          <Route path="/" element={<Home />} />
+          <Route path="/clinic" element={<AboutClinic />} />
+          <Route path="/roni" element={<AboutRoni />} />
+          <Route path="/appointments" element={<Appointments />} />
+          <Route path="*" element={<Navigate to="/" replace />} /> {/* for unknown url, go to home, ELEMENT = WHAT TO SHOW */}
+        </Routes>
       </main>
-
-      </div>
+    </>
   )
 }
-
-//can use App in other places
 export default App

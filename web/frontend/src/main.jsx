@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import './index.css'
 
-createRoot(document.getElementById('root')).render(      // where react connects to the page
-  <StrictMode>
-    <App />
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>  {/* wrap App and let the react-router-dom manage url, remember the pages before and let me go back */}
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>
 )
+
