@@ -3,7 +3,6 @@ import AppointmentForm from "../components/AppointmentForm";
 // formData- the date that the user fill
 export default function AppointmentPage() {
   async function handleAppointmentSubmit(formData) {
-    console.log("🔥 FUNCTION CALLED 🔥");
     try {
       const res = await fetch("http://localhost:3000/api/appointments", {
         method: "POST",
