@@ -20,15 +20,27 @@ const [form, setForm] = useState({
     // when the user press submit
     // we prevernt the def behaviour of html of reloading the page and lets react know that we make change
     // onsubmit?.(form)- if onsubmit exists- call it with the form format
-    function handleSubmit(e) {
-        e.preventDefault();
-         if (!form.name || !form.phone || !form.date || !form.time) {
-      alert("נא למלא: שם, טלפון, תאריך וזמן.");
-      return;
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      if (!form.name || !form.phone || !form.date || !form.time) {
+        alert("נא למלא: שם, טלפון, תאריך וזמן.");
+        return;
+      }
+
+      try {
+        await onSubmit?.(form); 
+        alert("נשלח לשרת בהצלחה!");
+
+        // Reseting form after success
+
+        setForm({ name: "", phone: "", mail: "", date: "", time: "" });
+      } catch (err) {
+        alert("משהו נכשל בשליחה לשרת");
+      }
     }
-    onSubmit?.(form);
-    alert("התור נקבע בהצלחה!");
-    }
+
+
     // when submitted call handleSubmit 
 
     return (
