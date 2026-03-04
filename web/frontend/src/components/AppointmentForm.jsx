@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 
 function AppointmentForm({ onSubmit }) {
 const [form, setForm] = useState({
@@ -8,14 +9,72 @@ const [form, setForm] = useState({
     date: "",
     time: "",
 })
+
+const [slots, setSlots] = useState([]);
+const [slotsLoading, setSlotsLoading] = useState(false);
+const [slotsError, setSlotsError] = useState("");
 // Updates the specific field that changed in the form state
 // name is the input field name attribute (one of name, phone ...)
 // value - name's value
 // ...prev keeps the previous form values
     function handleChange(e) {
         const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
+        setForm(prev => {
+      if (name === "date") {
+        return { ...prev, date: value, time: "" }; 
+      }
+      return { ...prev, [name]: value };
+      });
     }
+
+    // load only aviable slots
+    useEffect(() => {
+    async function loadSlots() {
+      // no date => no slots
+      if (!form.date) {
+        setSlots([]);
+        setSlotsError("");
+        return;
+      }
+
+      setSlotsLoading(true);
+      setSlotsError("");
+
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/slots?date=${form.date}`
+        );
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `Server error ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        const available = Array.isArray(data.available) ? data.available : [];
+        setSlots(available);
+
+        // If current selected time is no longer available, clear it
+        if (form.time && !available.includes(form.time)) {
+          setForm((prev) => ({ ...prev, time: "" }));
+        }
+      } catch (err) {
+        console.error(err);
+        setSlots([]);
+        setSlotsError("לא הצלחתי להביא שעות פנויות מהשרת");
+        // Also clear time so user can't submit a stale value
+        if (form.time) {
+          setForm((prev) => ({ ...prev, time: "" }));
+        }
+      } finally {
+        setSlotsLoading(false);
+      }
+    }
+
+    loadSlots();
+    // only rerun when date changes
+  }, [form.date]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // when the user press submit
     // we prevernt the def behaviour of html of reloading the page and lets react know that we make change
@@ -27,22 +86,33 @@ const [form, setForm] = useState({
         alert("נא למלא: שם, טלפון, תאריך וזמן.");
         return;
       }
+      if (!slots.includes(form.time)) {
+        alert("השעה שנבחרה לא פנויה. אנא בחר שעה מהרשימה.");
+        return;
+      }
 
       try {
-        await onSubmit?.(form); 
+        await onSubmit?.(form);
         alert("נשלח לשרת בהצלחה!");
-
-        // Reseting form after success
-
         setForm({ name: "", phone: "", mail: "", date: "", time: "" });
+        setSlots([]);
+        setSlotsError("");
       } catch (err) {
+        console.error(err);
         alert("משהו נכשל בשליחה לשרת");
       }
     }
 
+    const canSubmit =
+    !!form.name &&
+    !!form.phone &&
+    !!form.date &&
+    !!form.time &&
+    !slotsLoading &&
+    slots.includes(form.time);
+
 
     // when submitted call handleSubmit 
-
     return (
     <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12, maxWidth: 400 }}>
       <label>
@@ -90,17 +160,39 @@ const [form, setForm] = useState({
       </label>
 
       <label>
-        שעה
-        <input
+       שעה
+        <select
           name="time"
           value={form.time}
           onChange={handleChange}
-          type="time"
           required
-        />
+          disabled={!form.date || slotsLoading || slots.length === 0}
+        >
+          <option value="">
+            {!form.date
+              ? "בחר תאריך קודם"
+              : slotsLoading
+              ? "טוען שעות..."
+              : slots.length === 0
+              ? "אין שעות פנויות"
+              : "בחר שעה"}
+          </option>
+
+          {slots.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
       </label>
 
-      <button type="submit">שליחת בקשה</button>
+      {slotsError && (
+        <div style={{ color: "crimson", fontSize: 14 }}>{slotsError}</div>
+      )}
+
+      <button type="submit" disabled={!canSubmit}>
+        שליחת בקשה
+      </button>
     </form>
   );
 }
