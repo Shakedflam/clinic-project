@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-
 function AppointmentForm({ onSubmit }) {
 const [form, setForm] = useState({
     name: "",
@@ -29,8 +28,9 @@ const [slotsError, setSlotsError] = useState("");
 
     // load only aviable slots
     useEffect(() => {
+      // calls backend API
     async function loadSlots() {
-      // no date => no slots
+      // no date -> no slots
       if (!form.date) {
         setSlots([]);
         setSlotsError("");
@@ -46,13 +46,15 @@ const [slotsError, setSlotsError] = useState("");
         );
 
         if (!res.ok) {
+          // fail to fetch slot from server
           const text = await res.text();
           throw new Error(text || `Server error ${res.status}`);
         }
-
+        // convert data to json
         const data = await res.json();
 
         const available = Array.isArray(data.available) ? data.available : [];
+        // Save available slots, UI updates
         setSlots(available);
 
         // If current selected time is no longer available, clear it
@@ -74,7 +76,7 @@ const [slotsError, setSlotsError] = useState("");
 
     loadSlots();
     // only rerun when date changes
-  }, [form.date]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [form.date]); 
 
     // when the user press submit
     // we prevernt the def behaviour of html of reloading the page and lets react know that we make change
@@ -102,12 +104,13 @@ const [slotsError, setSlotsError] = useState("");
         alert("משהו נכשל בשליחה לשרת");
       }
     }
-
+    // !! convert to boolean, if empty- false, else true
     const canSubmit =
     !!form.name &&
     !!form.phone &&
     !!form.date &&
     !!form.time &&
+    //send after load
     !slotsLoading &&
     slots.includes(form.time);
 

@@ -1,5 +1,4 @@
 
-
 const express = require("express"); // allows us to create a server and define routes
 const cors = require("cors"); // allows get requests from other region (frontend)
 const crypto = require("crypto"); // imports uuid - unique id
@@ -106,15 +105,13 @@ app.patch("/api/appointments/:id/cancel", (req, res) => {
   if (!appt) {
     return res.status(404).json({ error: "Appointment not found" });
   }
-
+  if (appt.status !== "pending") {
+  return res.status(400).json({ error: "Cannot cancel this appointment, it has already been processed" });
+}
   appt.status = "cancelled";
   res.json(appt);
 });
 
-
-app.get("/api/appointments", (req, res) => {
-  res.json(appointments);
-});
 
 app.get("/api/slots", (req, res) => {
   const { date } = req.query;
@@ -127,6 +124,17 @@ app.get("/api/slots", (req, res) => {
   res.json({ date, meetingMinutes: MEETING_MINUTES, available });
 });
 
+app.get("/api/appointments", (req, res) => {
+  // support filtering: ?status=pending
+  const { status } = req.query; // equals to const status = req.query.status
+
+  if (status) {
+    const filtered = appointments.filter((a) => a.status === status);
+    return res.json(filtered);
+  }
+
+  res.json(appointments);
+});
 
 const PORT = 3000;
 

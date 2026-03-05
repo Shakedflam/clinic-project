@@ -26,6 +26,10 @@ function Nav() {
       <NavLink to="/appointments" style = {({isActive}) => linkStyle(isActive)}>
       תורים
       </NavLink>
+
+      <NavLink to="/admin" style={({ isActive }) => linkStyle(isActive)}>
+        ניהול תורים
+      </NavLink>
     </nav>
   )
 }

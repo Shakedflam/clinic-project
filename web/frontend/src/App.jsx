@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import AboutClinic from './pages/AboutClinic'
 import AboutRoni from './pages/AboutRoni'
 import Appointments  from './pages/Appointments'  
+import AdminAppointments from "./pages/AdminAppointments";
 import './App.css'
 
 // return what that appears on the screen
@@ -21,6 +22,7 @@ function App() {
           <Route path="/clinic" element={<AboutClinic />} />
           <Route path="/roni" element={<AboutRoni />} />
           <Route path="/appointments" element={<Appointments />} />
+          <Route path="/admin" element={<AdminAppointments />} />
           <Route path="*" element={<Navigate to="/" replace />} /> {/* for unknown url, go to home, ELEMENT = WHAT TO SHOW */}
         </Routes>
       </main>
