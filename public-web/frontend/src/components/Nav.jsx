@@ -27,9 +27,6 @@ function Nav() {
       תורים
       </NavLink>
 
-      <NavLink to="/admin" style={({ isActive }) => linkStyle(isActive)}>
-        ניהול תורים
-      </NavLink>
     </nav>
   )
 }

@@ -1,12 +1,18 @@
 import { Routes, Route, Navigate } from 'react-router-dom' // routes - wrapper who decide which Route (mapping url and componnet) to show
 import Header from './components/Header'
 import Nav from './components/Nav'
-import Home from './pages/Home'
-import AboutClinic from './pages/AboutClinic'
-import AboutRoni from './pages/AboutRoni'
-import Appointments  from './pages/Appointments'  
-import AdminAppointments from "./pages/AdminAppointments";
+import Home from './pages/website/Home'
+import AboutClinic from './pages//website/AboutClinic'
+import AboutRoni from './pages/website/AboutRoni'
+import Appointments  from './pages/website/Appointments'  
+import AdminAppointments from "./pages/admin/AdminAppointments";
+import AdminLogin from "./pages/admin/AdminLogin";
 import './App.css'
+
+function ProtectedAdminRoute({ children }) {
+  const isLoggedIn = sessionStorage.getItem("roniAdminLoggedIn") === "true";
+  return isLoggedIn ? children : <Navigate to="/admin/login" replace />;
+}
 
 // return what that appears on the screen
 function App() {
@@ -22,7 +28,14 @@ function App() {
           <Route path="/clinic" element={<AboutClinic />} />
           <Route path="/roni" element={<AboutRoni />} />
           <Route path="/appointments" element={<Appointments />} />
-          <Route path="/admin" element={<AdminAppointments />} />
+          <Route path="/admin"element={
+            //makes AdminAppointments protected
+              <ProtectedAdminRoute>
+                <AdminAppointments />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="*" element={<Navigate to="/" replace />} /> {/* for unknown url, go to home, ELEMENT = WHAT TO SHOW */}
         </Routes>
       </main>

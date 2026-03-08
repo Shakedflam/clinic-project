@@ -1,4 +1,4 @@
-import AppointmentForm from "../components/AppointmentForm";
+import AppointmentForm from "../../components/AppointmentForm";
 
 // formData- the date that the user fill
 export default function AppointmentPage() {
