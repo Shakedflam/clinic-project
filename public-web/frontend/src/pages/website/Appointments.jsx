@@ -1,21 +1,10 @@
 import AppointmentForm from "../../components/AppointmentForm";
+import { createAppointment } from "../../api/appointments";
 
 // formData- the date that the user fill
 export default function AppointmentPage() {
   async function handleAppointmentSubmit(formData) {
-    const res = await fetch("http://localhost:3000/api/appointments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Server error ${res.status}: ${text}`);
-    }
-
-    const data = await res.json();
+    const data = await createAppointment(formData);
     console.log("Server said:", data);
     return data;
   }
