@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { loadPendingAppointments, approveAppointment, cancelAppointment } from "../api/appointments";
+import { logoutAdmin } from "../api/auth";
 
 function AdminAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -12,43 +14,29 @@ function AdminAppointments() {
 
 
   async function loadPending() {
-    setLoading(true);
-    setErr("");
-    try {
-      const res = await fetch("http://localhost:3000/api/appointments?status=pending");
-      // res.ok is true if status is 200-299, otherwise false
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setAppointments(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-      setErr("לא הועלו תורים מהשרת");
-      setAppointments([]);
-    } finally {
-      setLoading(false);
-    }
+  setLoading(true);
+  setErr("");
+  try {
+    const data = await loadPendingAppointments();
+    setAppointments(data);
+  } catch (e) {
+    console.error(e);
+    setErr("לא הועלו תורים מהשרת");
+    setAppointments([]);
+  } finally {
+    setLoading(false);
   }
+}
+
 
 useEffect(() => {
-  const isLoggedIn = sessionStorage.getItem("roniAdminLoggedIn");
-
-  if (!isLoggedIn) {
-    navigate("/admin/login");
-    return;
-  }
-
   loadPending();
-}, [navigate]);
+}, []);
 
   // asking patch from the server in order to approve
   async function approve(id) {
     try {
-      const res = await fetch(`http://localhost:3000/api/appointments/${id}/approve`, {
-        method: "PATCH",
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const updated = await res.json();
-
+      const updated = await approveAppointment(id);
       // remove from list because it's no longer pending
       setAppointments((prev) => prev.filter((a) => a.id !== updated.id));
     } catch (e) {
@@ -59,11 +47,7 @@ useEffect(() => {
 
   async function cancel(id) {
     try {
-      const res = await fetch(`http://localhost:3000/api/appointments/${id}/cancel`, {
-        method: "PATCH",
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const updated = await res.json();
+      const updated = await cancelAppointment(id);
 
       // remove from list because it's no longer pending
       setAppointments((prev) => prev.filter((a) => a.id !== updated.id));
@@ -74,8 +58,8 @@ useEffect(() => {
   }
 
   function logout() {
-    sessionStorage.removeItem("roniAdminLoggedIn");
-    navigate("/admin/login");
+    logoutAdmin();
+    navigate("/login");
   }
 
   function clearAdminTimers() {

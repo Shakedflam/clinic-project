@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom' // routes - wrapper w
 import Header from './components/Header'
 import Nav from './components/Nav'
 import Home from './pages/website/Home'
-import AboutClinic from './pages//website/AboutClinic'
+import AboutClinic from './pages/website/AboutClinic'
 import AboutRoni from './pages/website/AboutRoni'
 import Appointments  from './pages/website/Appointments'  
 import AdminAppointments from "./pages/admin/AdminAppointments";

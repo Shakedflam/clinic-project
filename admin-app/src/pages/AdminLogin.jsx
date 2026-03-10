@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { loginAdmin, isAdminLoggedIn } from "../api/auth";
 
 function AdminLogin() {
   const [username, setUsername] = useState("");
@@ -7,14 +8,19 @@ function AdminLogin() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (isAdminLoggedIn()) {
+      navigate("/appointments");
+    }
+  }, [navigate]);
+
   function handleSubmit(e) {
-  e.preventDefault();
-  if (username === "roni" && password === "1234") {
-    sessionStorage.setItem("roniAdminLoggedIn", "true");
-    navigate("/admin");
-  } else {
-    alert("שם משתמש או סיסמה שגויים");
-  }
+    e.preventDefault();
+    if (loginAdmin(username, password)) {
+      navigate("/appointments");
+    } else {
+      alert("שם משתמש או סיסמה שגויים");
+}
 }
 
   return (
