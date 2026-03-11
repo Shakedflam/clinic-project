@@ -1,5 +1,5 @@
-import AppointmentForm from "../../components/AppointmentForm";
-import { createAppointment } from "../../api/appointments";
+import AppointmentForm from "../components/AppointmentForm";
+import { createAppointment } from "../api/appointments";
 
 // formData- the date that the user fill
 export default function AppointmentPage() {
