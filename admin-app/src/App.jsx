@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AdminLogin from "./pages/AdminLogin";
 import AdminAppointments from "./pages/AdminAppointments";
+import { isAdminLoggedIn } from "./api/auth";
 
 function ProtectedAdminRoute({ children }) {
-  const isLoggedIn = sessionStorage.getItem("roniAdminLoggedIn") === "true";
-  return isLoggedIn ? children : <Navigate to="/login" replace />;
+  return isAdminLoggedIn() ? children : <Navigate to="/login" replace />;
 }
 
 function App() {

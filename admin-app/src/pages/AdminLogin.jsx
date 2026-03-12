@@ -5,6 +5,7 @@ import { loginAdmin, isAdminLoggedIn } from "../api/auth";
 function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
 
   const navigate = useNavigate();
 
@@ -14,14 +15,17 @@ function AdminLogin() {
     }
   }, [navigate]);
 
-  function handleSubmit(e) {
+  // async becasue the login talks to the server and it takes time
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (loginAdmin(username, password)) {
+    setErr("");
+    try {
+      await loginAdmin(username, password);
       navigate("/appointments");
-    } else {
-      alert("שם משתמש או סיסמה שגויים");
-}
-}
+    } catch (e) {
+      setErr("שם משתמש או סיסמה שגויים");
+    }
+  }
 
   return (
     <div>
@@ -47,6 +51,8 @@ function AdminLogin() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
+
+        {err && <div style={{ color: "crimson", marginTop: 8 }}>{err}</div>}
 
         <button type="submit">התחבר</button>
       </form>

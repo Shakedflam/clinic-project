@@ -7,6 +7,11 @@ const CLINIC_OPEN = "09:00";
 const CLINIC_CLOSE = "18:00";
 const MEETING_MINUTES = 45;
 
+//login related constants
+const ADMIN_USERNAME = "roni";
+const ADMIN_PASSWORD = "123456";
+const ADMIN_TOKEN = crypto.randomUUID();
+
 function timeToMinutes(t) {
   const [hh, mm] = t.split(":").map(Number);
   return hh * 60 + mm;
@@ -31,7 +36,7 @@ function buildSlotsForDay() {
 function getTakenTimesForDate(date) {
   // gets only are not cancelled and return time of them
   return appointments
-    .filter(a => a.date === date && a.status !== "cancelled")
+    .filter(a => a.date === date && a.status !== "canceled")
     .map(a => a.time);
 }
 
@@ -51,6 +56,32 @@ app.use(cors());
 app.use(express.json());
 
 let appointments = [];
+
+app.post("/api/admin/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Invalid username or password" });
+  }
+
+  res.json({ token: ADMIN_TOKEN });
+});
+
+function requireAdminAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ error: "Missing Authorization header" });
+  }
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || token !== ADMIN_TOKEN) {
+    return res.status(401).json({ error: "Invalid or missing admin token" });
+  }
+
+  next();
+}
 
 // Handles POST method request
 app.post("/api/appointments", (req, res) => {
@@ -83,32 +114,43 @@ app.post("/api/appointments", (req, res) => {
  res.status(201).json(appointment);
 });
 
-// Approve appointment- changes status
-app.patch("/api/appointments/:id/approve", (req, res) => {
+app.patch("/api/appointments/:id", requireAdminAuth, (req, res) => {
   const { id } = req.params;
-
+  const { status, date, time } = req.body;
   const appt = appointments.find((a) => a.id === id);
+
   if (!appt) {
     return res.status(404).json({ error: "Appointment not found" });
   }
-  appt.status = "approved";
-  res.json(appt);
-});
-
-
-// Cancel appointment
-app.patch("/api/appointments/:id/cancel", (req, res) => {
-  // id from url
-  const { id } = req.params;
-  // find appointment with matching id
-  const appt = appointments.find((a) => a.id === id);
-  if (!appt) {
-    return res.status(404).json({ error: "Appointment not found" });
+  if (status !== undefined) {
+    const allowedStatuses = ["pending", "approved", "canceled"];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+    appt.status = status;
   }
-  if (appt.status !== "pending") {
-  return res.status(400).json({ error: "Cannot cancel this appointment, it has already been processed" });
-}
-  appt.status = "cancelled";
+  const nextDate = date !== undefined ? date : appt.date;
+  const nextTime = time !== undefined ? time : appt.time;
+  if (date !== undefined || time !== undefined) {
+    const allSlots = buildSlotsForDay();
+    if (!allSlots.includes(nextTime)) {
+      return res.status(400).json({
+        error: `Invalid time slot. Must be one of: ${allSlots.join(", ")}`
+      });
+    }
+    const conflict = appointments.find(
+      (a) =>
+        a.id !== id &&
+        a.date === nextDate &&
+        a.time === nextTime &&
+        a.status !== "canceled"
+    );
+    if (conflict) {
+      return res.status(409).json({ error: "Time slot is already booked" });
+    }
+    appt.date = nextDate;
+    appt.time = nextTime;
+  }
   res.json(appt);
 });
 
@@ -124,7 +166,7 @@ app.get("/api/slots", (req, res) => {
   res.json({ date, meetingMinutes: MEETING_MINUTES, available });
 });
 
-app.get("/api/appointments", (req, res) => {
+app.get("/api/appointments", requireAdminAuth, (req, res) => {
   // support filtering: ?status=pending
   const { status } = req.query; // equals to const status = req.query.status
 

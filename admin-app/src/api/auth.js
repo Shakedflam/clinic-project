@@ -1,18 +1,31 @@
-const ADMIN_SESSION_KEY = "roniAdminLoggedIn";
+const ADMIN_TOKEN_KEY = "adminToken";
 
-export function loginAdmin(username, password) {
-  if (username === "roni" && password === "1234") {
-    sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
-    return true;
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000";
+
+export async function loginAdmin(username, password) {
+  const res = await fetch(`${API_BASE}/api/admin/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Login failed");
   }
-
-  return false;
+  const data = await res.json();
+  sessionStorage.setItem(ADMIN_TOKEN_KEY, data.token);
 }
 
 export function logoutAdmin() {
-  sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 
 export function isAdminLoggedIn() {
-  return sessionStorage.getItem(ADMIN_SESSION_KEY) === "true";
+  return Boolean(sessionStorage.getItem(ADMIN_TOKEN_KEY));
+}
+
+export function getAdminToken() {
+  return sessionStorage.getItem(ADMIN_TOKEN_KEY);
 }

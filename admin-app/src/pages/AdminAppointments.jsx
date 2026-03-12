@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { loadPendingAppointments, approveAppointment, cancelAppointment } from "../api/appointments";
-import { logoutAdmin } from "../api/auth";
+import { logoutAdmin, isAdminLoggedIn  } from "../api/auth";
 
 function AdminAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -17,7 +17,7 @@ function AdminAppointments() {
   setLoading(true);
   setErr("");
   try {
-    const data = await loadPendingAppointments();
+    const data = await loadAppointments("pending");
     setAppointments(data);
   } catch (e) {
     console.error(e);
@@ -30,32 +30,34 @@ function AdminAppointments() {
 
 
 useEffect(() => {
+  if (!isAdminLoggedIn()) {
+    navigate("/login");
+    return;
+  }
+
   loadPending();
-}, []);
+}, [navigate]);
 
   // asking patch from the server in order to approve
   async function approve(id) {
-    try {
-      const updated = await approveAppointment(id);
-      // remove from list because it's no longer pending
-      setAppointments((prev) => prev.filter((a) => a.id !== updated.id));
-    } catch (e) {
-      console.error(e);
-      alert("אישור נכשל");
-    }
+  try {
+    const updated = await updateAppointment(id, { status: "approved" });
+    setAppointments((prev) => prev.filter((a) => a.id !== updated.id));
+  } catch (e) {
+    console.error(e);
+    setErr("לא הצלחתי לאשר את התור");
   }
+}
 
-  async function cancel(id) {
-    try {
-      const updated = await cancelAppointment(id);
-
-      // remove from list because it's no longer pending
-      setAppointments((prev) => prev.filter((a) => a.id !== updated.id));
-    } catch (e) {
-      console.error(e);
-      alert("ביטול נכשל");
-    }
+async function cancel(id) {
+  try {
+    const updated = await updateAppointment(id, { status: "canceled" });
+    setAppointments((prev) => prev.filter((a) => a.id !== updated.id));
+  } catch (e) {
+    console.error(e);
+    setErr("לא הצלחתי לבטל את התור");
   }
+}
 
   function logout() {
     logoutAdmin();
