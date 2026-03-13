@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { loadPendingAppointments, approveAppointment, cancelAppointment } from "../api/appointments";
+import { loadAppointments, updateAppointment } from "../api/appointments";
 import { logoutAdmin, isAdminLoggedIn  } from "../api/auth";
 
 function AdminAppointments() {
